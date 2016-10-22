@@ -8,7 +8,6 @@ from dirac_sheet import dirac_sheet
 
 def main():
 	fig = plt.figure(num=None, figsize=(11, 6), dpi=96, facecolor='w', edgecolor='k')
-	#small comment added
 	#imput parameters for Dirac_sheet
 	dx = .25
 	dt = 0.1
