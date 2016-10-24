@@ -10,7 +10,7 @@ import os
 
 def main():
 
-	directory = "E:/pyDirac/collimator_output_full_absorb/"
+	directory = "E:/pyDirac/collimator_output_full_absorb_2/"
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	
