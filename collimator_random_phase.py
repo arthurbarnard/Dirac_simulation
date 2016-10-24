@@ -21,17 +21,26 @@ def main():
 
 	ax = plt.plot()
 	
+	theta=-30, wave_vec=.15
+	data=np.load(directory+'collimator_%03d_deg_%03dEm3_wave_vec.npz' %(theta,wave_vec*100))
+	u1=data['u1']
+	u1s=np.zeros((u1.shape[0],u1.shape[1],21))
+	v1s=np.zeros((u1.shape[0],u1.shape[1],21))
+	
 	for wave_vec in np.linspace(.15,1.5,10,endpoint=True):
-		for theta in np.linspace(-30.0,30.0,21,endpoint=True):
+
+		for n_index, theta in enumerate(np.linspace(-30.0,30.0,21,endpoint=True)):
 			#theta=0;
 			tic = time.time()
-			
 			data=np.load(directory+'collimator_%03d_deg_%03dEm3_wave_vec.npz' %(theta,wave_vec*100))
 	
 			u1=data['u1']
-			#u2=data['u2']
 			v1=data['v1']
-			#v2=data['v2']
+			u1s[:,:,n_index]=u1
+			v1s[:,:,n_index]=v1
+		
+		for n_index, theta in enumerate(np.linspace(-30.0,30.0,21,endpoint=True)):
+		
 			plt.clf()
 
 			#z limits
@@ -40,13 +49,13 @@ def main():
 
 			#plt.ioff()
 			plt.subplot(1,2, 1)
-			plt.imshow(np.real(u1).T, cmap='RdBu', vmin=z_min, vmax=z_max,
+			plt.imshow(np.real(u1s[:,:,n_index]).T, cmap='RdBu', vmin=z_min, vmax=z_max,
 					   #extent=[x.min(), x.max(), y.min(), y.max()],
 					   interpolation='nearest', origin='lower')
 			plt.title('u1')
 			plt.colorbar()
 			plt.subplot(1,2,2)
-			plt.imshow(np.real(v1).T, cmap='RdBu', vmin=z_min, vmax=z_max,
+			plt.imshow(np.real(v1s[:,:,n_index]).T, cmap='RdBu', vmin=z_min, vmax=z_max,
 					   #extent=[x.min(), x.max(), y.min(), y.max()],
 					   interpolation='nearest', origin='lower')
 			plt.title('v1')
