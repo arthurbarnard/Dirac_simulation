@@ -49,7 +49,6 @@ def run_Dirac(p,theta,fname):
 	
 	NoPropMat[inPolygon(poly_verts2,x,y)]=1
 	AbsMat[inPolygon(poly_verts,x,y)]=1
-	NoPropMat[((x<140.26)&(x>140)&(y<12.5)&(y>-12.5))]=1
 	
 	AbsMat[x>140]=.99
 	AbsMat[(x>70)&(x<141)&(y>40)]=.99
