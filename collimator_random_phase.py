@@ -9,7 +9,6 @@ import dirac_script as ds
 import multiprocessing
 import os
 
-
 def main():
 	directory = "E:/pyDirac/collimator_output_full_absorb/"
 	#
@@ -44,9 +43,15 @@ def main():
 		for k, theta0 in enumerate(np.linspace(-15,15,11)):
 			u1[:]=0
 			v1[:]=0
+			pos=np.random*rand()*72-36.0
+			
 			for n_index, theta in enumerate(np.linspace(-30.0,30.0,21,endpoint=True)):
-				u1+=u1s[:,:,n_index]*np.exp(-(theta-theta0)**2/2/dtheta**2)
-				v1+=v1s[:,:,n_index]*np.exp(-(theta-theta0)**2/2/dtheta**2)
+				#u1+=u1s[:,:,n_index]*np.exp(-(theta-theta0)**2/2/dtheta**2)
+				#v1+=v1s[:,:,n_index]*np.exp(-(theta-theta0)**2/2/dtheta**2)
+				amp=np.random.rand()
+			
+				u1+=u1s[:,:,n_index]*amp*exp(1j*pos*np.sin(theta/180*pi))
+				v1+=v1s[:,:,n_index]*amp*exp(1j*pos*np.sin(theta/180*pi))
 				
 			plt.clf()
 
