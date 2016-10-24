@@ -12,10 +12,7 @@ def main():
 	plt.ion()
 	
 	fig = plt.figure(num=None, figsize=(11, 6), dpi=96, facecolor='w', edgecolor='k')
-<<<<<<< HEAD
-=======
-	
->>>>>>> speed-up-attempt
+
 	#imput parameters for Dirac_sheet
 	dx = .25
 	dt = 0.1
