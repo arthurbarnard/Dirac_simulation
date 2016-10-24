@@ -1,3 +1,4 @@
+from dirac_run import inPolygon
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -56,10 +57,7 @@ def run_Dirac(p,theta,fname):
 	myDirac.set_Absorb_mat(AbsMat)
 	myDirac.set_Drive_mat(DriveMat)
 	
-	#print x[0,0], y[0,0]
-	#print x[0,1], y[0,1]
-	#print x[1,0], y[1,0]
-	#print x[1,1], y[1,1]
+
 	
 	for i in xrange(0,2200):
 		
@@ -73,22 +71,6 @@ def run_Dirac(p,theta,fname):
 	np.savez_compressed(fname+'.npz', u1=myDirac.u1,u2=myDirac.u2,v1=myDirac.v1,v2=myDirac.v2,Ngrid=myDirac.Ngrid,t=myDirac.t,D_x=myDirac.D_x)
 
 		
-		
-def inPolygon(poly_verts,x,y):
-
-	ss=x.shape
-	
-	
-	x1, y1 = x.flatten(), y.flatten()
-
-	points = np.vstack((x1,y1)).T
-
-	path = Path(poly_verts)
-	
-	grid = path.contains_points(points, radius=.01)
-	grid = grid.reshape(ss)
-	
-	return grid
 		
 if __name__ == '__main__':
 	main()

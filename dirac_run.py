@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('TKagg')
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -7,7 +9,13 @@ from dirac_sheet import dirac_sheet
 
 
 def main():
+	plt.ion()
+	
 	fig = plt.figure(num=None, figsize=(11, 6), dpi=96, facecolor='w', edgecolor='k')
+<<<<<<< HEAD
+=======
+	
+>>>>>>> speed-up-attempt
 	#imput parameters for Dirac_sheet
 	dx = .25
 	dt = 0.1
@@ -17,13 +25,12 @@ def main():
 	z_lim=2
 	filename='Dirac_run_out'
 
-	plt.ion()
 	plt.clf()
 
 	tic = time.time()
 	
-	myDirac=dirac_sheet(0,901,dt,dx,X_offset,0)
-	myDirac.set_p(.1,np.pi*0)
+	myDirac=dirac_sheet(0,(901,601),dt,dx,X_offset,0)
+	myDirac.set_p(1.5,np.pi*0/180)
 	
 	x, y = myDirac.get_pos_mat()
 	
@@ -64,6 +71,7 @@ def main():
 		myDirac.time_step()
 		toc = time.time()
 		print i, toc-tic
+		tic = time.time()
 		
 		
 		if np.mod(i,10)==0:
@@ -77,27 +85,29 @@ def main():
 
 			
 			plt.subplot(1,2, 1)
-			plt.imshow(np.real(myDirac.u1), cmap='RdBu', vmin=z_min, vmax=z_max,
+			plt.imshow(np.real(myDirac.u1)-0*np.real(myDirac.u10*np.exp(-1j*myDirac.p0*myDirac.t)), cmap='RdBu', vmin=z_min, vmax=z_max,
 					   extent=[x.min(), x.max(), y.min(), y.max()],
 					   interpolation='nearest', origin='lower')
 			plt.title('u1')
 			ax = plt.gca()
 			ax.set_xlim([0,200])
+			#ax.set_ylim([-25,25])
 			plt.colorbar()
 			plt.subplot(1,2,2)
-			plt.imshow(np.real(myDirac.v1), cmap='RdBu', vmin=z_min, vmax=z_max,
+			plt.imshow(np.real(myDirac.u10*np.exp(-1j*myDirac.p0*myDirac.t)), cmap='RdBu', vmin=z_min, vmax=z_max,
 					   extent=[x.min(), x.max(), y.min(), y.max()],
 					   interpolation='nearest', origin='lower')
 			plt.title('v1')
 			ax = plt.gca()
 			ax.set_xlim([0,200])
+			#ax.set_ylim([-25,25])
 			plt.colorbar()
 			
 			fig.canvas.draw()
 			
 	
 	#save key variables from simulation for later analysis
-	np.savez_compressed(filename+'.npz', u1=myDirac.u1,u2=myDirac.u2,v1=myDirac.v1,v2=myDirac.v2,Ngrid=myDirac.Ngrid,t=myDirac.t,D_x=myDirac.D_x)
+	np.savez_compressed(filename+'.npz', u1=myDirac.u1,u2=myDirac.u2,v1=myDirac.v1,v2=myDirac.v2,Ngrid=(myDirac.Ngrid_x,myDirac.Ngrid_y),t=myDirac.t,D_x=myDirac.D_x)
 	plt.ioff()
 	plt.draw()
 	plt.show()

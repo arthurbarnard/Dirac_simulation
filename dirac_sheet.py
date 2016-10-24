@@ -27,22 +27,29 @@ class dirac_sheet:
 
 	def __init__(self,m, Ngrid, D_t, D_x, X_offset,Y_offset):
 	
-		self.t=0.0 			   	#time
-		self.Drive_coupling=0.3 #coupling strength of Drive plane-wave
-		self.Abs_rate=0.99		#exponential decay rate in absorptive regions
-		self.m=m				#effective mass; in graphene=0
-		self.Ngrid=Ngrid		#number of sub-lattice points: total (2Ngrid)x(2Ngrid) points
-		self.D_t=D_t			#discrete time step
-		self.D_x=D_x			#spatial discretization
+		self.t=0.0 			   		#time
+		self.Drive_coupling=0.3 	#coupling strength of Drive plane-wave
+		self.Abs_rate=0.99			#exponential decay rate in absorptive regions
+		self.m=m					#effective mass; in graphene=0
+		
+		if not isinstance(Ngrid,tuple):
+			self.Ngrid_x=Ngrid		#number of sub-lattice points: total (2Ngrid)x(2Ngrid) points
+			self.Ngrid_y=Ngrid	
+		else:
+			self.Ngrid_x=Ngrid[0]	
+			self.Ngrid_y=Ngrid[1]	
+		self.D_t=D_t				#discrete time step
+		self.D_x=D_x				#spatial discretization
 		self.D_y=D_x
 		self.X_offset=X_offset	
 		self.Y_offset=Y_offset
-		self.p0=2*pi/100.0		#Drive wave-vector magnitude
-		self.theta=0			#Drive wave-vector direction
+		self.p0=2*pi/100.0			#Drive wave-vector magnitude
+		self.theta=0				#Drive wave-vector direction
+		self.massorV=False			#encodes whether m or V is nonzero
 		self.px=self.p0*np.cos(self.theta)
 		self.py=self.p0*np.sin(self.theta)
-		self.y, self.x = np.mgrid[slice((0-round(Ngrid/2)),(Ngrid-round(Ngrid/2)),1),
-								slice((0-round(Ngrid/2)),(Ngrid-round(Ngrid/2)),1)]
+		self.y, self.x = np.mgrid[slice((0-round(self.Ngrid_y/2)),(self.Ngrid_y-round(self.Ngrid_y/2)),1),
+								slice((0-round(self.Ngrid_x/2)),(self.Ngrid_x-round(self.Ngrid_x/2)),1)]
 								
 		#define the X,Y coordinate matrix for each sublattice point
 		self.x, self.y = self.x*self.D_x+self.X_offset, self.y*self.D_y+self.Y_offset
@@ -88,6 +95,7 @@ class dirac_sheet:
 		self.rNPu2=self.No_prop_mat[0::2,0::2]!=0.0
 		self.rNPv1=self.No_prop_mat[1::2,0::2]!=0.0
 		self.rNPv2=self.No_prop_mat[0::2,1::2]!=0.0
+		
 		
 		#V1-V4 are electrostatic scalr potentials for the v1,v2,u1,and u2
 		#latics respectively
@@ -203,18 +211,27 @@ class dirac_sheet:
 		self.rAu2=self.Absorb_mat[0::2,0::2]!=0.0
 		self.rAv1=self.Absorb_mat[1::2,0::2]!=0.0
 		self.rAv2=self.Absorb_mat[0::2,1::2]!=0.0
-		
+		self.rAu1_flat=np.where(self.rAu1)
+		self.rAu2_flat=np.where(self.rAu2)
+		self.rAv1_flat=np.where(self.rAv1)
+		self.rAv2_flat=np.where(self.rAv2)
+	
 	def set_Drive_mat(self,Drive_mat):
 		self.Drive_mat=Drive_mat
 		self.rDu1=self.Drive_mat[1::2,1::2]!=0.0
 		self.rDu2=self.Drive_mat[0::2,0::2]!=0.0
 		self.rDv1=self.Drive_mat[1::2,0::2]!=0.0
 		self.rDv2=self.Drive_mat[0::2,1::2]!=0.0
+		self.rDu1_flat=np.where(self.rDu1)
+		self.rDu2_flat=np.where(self.rDu2)
+		self.rDv1_flat=np.where(self.rDv1)
+		self.rDv2_flat=np.where(self.rDv2)
 		
 	def v_step(self):
+	
 		#steps the v-lattice relative to a fixed u-lattice
 		
-		self.t=self.t+self.D_t/2*pi
+		self.t+=self.D_t/2.0
 		
 		#introduce the drive wave to the u-lattice
 		self.u1[self.rDu1]+=self.Drive_coupling*self.u10[self.rDu1]*np.exp(-1j*self.p0*self.t)
@@ -225,23 +242,31 @@ class dirac_sheet:
 		self.u2[self.rAu2]*=self.Abs_rate
 		
 		#wave equation
-		self.out=(1/(2*1j+self.D_t*self.mminusV1))*((2*1j-self.D_t*self.mminusV1)*self.v1-(2*1j*self.D_t/self.D_x)*(self.u1-np.roll(self.u1,1,axis=1))+(2*self.D_t/self.D_y)*(np.roll(self.u2,-1,axis=0)-self.u2))		
-		self.out2=(1/(2*1j+self.D_t*self.mminusV2))*((2*1j-self.D_t*self.mminusV2)*self.v2-(2*1j*self.D_t/self.D_x)*(np.roll(self.u2,-1,axis=1)-self.u2)+(2*self.D_t/self.D_y)*(self.u1-np.roll(self.u1,1,axis=0)))
+		if self.massorV:
+			self.out=(1/(2*1j+self.D_t*self.mminusV1))*((2*1j-self.D_t*self.mminusV1)*self.v1-(2*1j*self.D_t/self.D_x)*(self.u1-np.roll(self.u1,1,axis=1))+(2*self.D_t/self.D_y)*(np.roll(self.u2,-1,axis=0)-self.u2))		
+			self.out2=(1/(2*1j+self.D_t*self.mminusV2))*((2*1j-self.D_t*self.mminusV2)*self.v2-(2*1j*self.D_t/self.D_x)*(np.roll(self.u2,-1,axis=1)-self.u2)+(2*self.D_t/self.D_y)*(self.u1-np.roll(self.u1,1,axis=0)))
+		else:
+			self.out=(1/(2*1j))*((2*1j)*self.v1-(2*1j*self.D_t/self.D_x)*(self.u1-np.roll(self.u1,1,axis=1))+(2*self.D_t/self.D_y)*(np.roll(self.u2,-1,axis=0)-self.u2))		
+			self.out2=(1/(2*1j))*((2*1j)*self.v2-(2*1j*self.D_t/self.D_x)*(np.roll(self.u2,-1,axis=1)-self.u2)+(2*self.D_t/self.D_y)*(self.u1-np.roll(self.u1,1,axis=0)))
 		
 		self.v1=self.out
 		self.v2=self.out2
 	
 	def u_step(self):
 		#steps the u-lattice relative to a fixed v lattice
-		self.t=self.t+self.D_t/2*pi
+		self.t+=self.D_t/2.0
 	
 		#Apply absorption
 		self.v1[self.rAv1]*=self.Abs_rate
 		self.v2[self.rAv2]*=self.Abs_rate
 
 		#wave equation
-		self.out=(~self.rNPu1)*(1/(2*1j-self.D_t*self.mplusV3))*((2*1j+self.D_t*self.mplusV3)*self.u1-(2*1j*self.D_t/self.D_x)*(np.roll(self.v1,-1,axis=1)-self.v1)-(2*self.D_t/self.D_y)*(np.roll(self.v2,-1,axis=0)-self.v2))
-		self.out2=(~self.rNPu2)*(1/(2*1j-self.D_t*self.mplusV4))*((2*1j+self.D_t*self.mplusV4)*self.u2-(2*1j*self.D_t/self.D_x)*(self.v2-np.roll(self.v2,1,axis=1))-(2*self.D_t/self.D_y)*(self.v1-np.roll(self.v1,1,axis=0)))
+		if self.massorV:
+			self.out=(~self.rNPu1)*(1/(2*1j-self.D_t*self.mplusV3))*((2*1j+self.D_t*self.mplusV3)*self.u1-(2*1j*self.D_t/self.D_x)*(np.roll(self.v1,-1,axis=1)-self.v1)-(2*self.D_t/self.D_y)*(np.roll(self.v2,-1,axis=0)-self.v2))
+			self.out2=(~self.rNPu2)*(1/(2*1j-self.D_t*self.mplusV4))*((2*1j+self.D_t*self.mplusV4)*self.u2-(2*1j*self.D_t/self.D_x)*(self.v2-np.roll(self.v2,1,axis=1))-(2*self.D_t/self.D_y)*(self.v1-np.roll(self.v1,1,axis=0)))
+		else:
+			self.out=(~self.rNPu1)*(1/(2*1j))*((2*1j)*self.u1-(2*1j*self.D_t/self.D_x)*(np.roll(self.v1,-1,axis=1)-self.v1)-(2*self.D_t/self.D_y)*(np.roll(self.v2,-1,axis=0)-self.v2))
+			self.out2=(~self.rNPu2)*(1/(2*1j))*((2*1j)*self.u2-(2*1j*self.D_t/self.D_x)*(self.v2-np.roll(self.v2,1,axis=1))-(2*self.D_t/self.D_y)*(self.v1-np.roll(self.v1,1,axis=0)))
 		
 		self.u1=self.out
 		self.u2=self.out2
@@ -251,3 +276,4 @@ class dirac_sheet:
 		#Takes a full time step D_t in two half steps
 		self.v_step()
 		self.u_step()
+
