@@ -9,6 +9,7 @@ from dirac_sheet import dirac_sheet
 def main():
 	fig = plt.figure()
 
+	filename='E:/pyDirac/collimator_output_full_absorb
 	# make these smaller to increase the resolution
 
 	dx = .25
@@ -69,10 +70,10 @@ def main():
 	# myDirac.set_Absorb_mat(AbsMat)
 	# myDirac.set_Drive_mat(DriveMat)
 	
-	# data=np.load('file.npz')
-	# u1=data['u1']
+	data=np.load(filename)
+	u1=data['u1']
 	# u2=data['u2']
-	# v1=data['v1']
+	v1=data['v1']
 	# v2=data['v2']
 	# plt.clf()
 
@@ -83,7 +84,7 @@ def main():
 	print np.max(np.imag((myDirac.u10*np.conj(myDirac.v10))-(myDirac.v10*np.conj(myDirac.u10))).T)
 	print myDirac.theta
 	
-	plt.imshow(np.real(myDirac.u10),cmap='RdBu', vmin=z_min, vmax=z_max,
+	plt.imshow(np.real(u1),cmap='RdBu', vmin=z_min, vmax=z_max,
 	#plt.imshow(np.real(v1*np.conj(v1)).T+np.real(u2*np.conj(u2)).T+0*np.real(v1*np.conj(v1)).T+0*np.real(v2*np.conj(v2)).T, cmap='hot', vmin=z_min, vmax=z_max,
 	#plt.imshow(np.imag((myDirac.u10*np.conj(myDirac.v10))-(myDirac.v10*np.conj(myDirac.u10))).T, cmap='RdBu', vmin=z_min, vmax=z_max,
 	#plt.imshow(np.real(((u1+u2)*np.conj(v1+v2))+((v1+v2)*np.conj(u1+u2))).T, cmap='RdBu', vmin=z_min, vmax=z_max,

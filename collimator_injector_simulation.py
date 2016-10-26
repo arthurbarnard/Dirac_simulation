@@ -16,16 +16,17 @@ def main():
 	
 	jobs=[]
 	n=0
-	for wave_vec in np.linspace(0.15,1.5,10,endpoint=True):		
+	for wave_vec in np.linspace(0.15,1.95,13,endpoint=True):		
 		for theta in np.linspace(-30.0,30.0,21,endpoint=True):
-
-			p = multiprocessing.Process(target=ds.run_Dirac, args=(wave_vec,theta*np.pi/180.0,directory+'collimator_%03d_deg_%03dEm3_wave_vec' %(theta,wave_vec*100)))
-			jobs.append(p)
-			p.start()
-			n+=1
-			print 'collimator_%03d_deg_%03dEm3_wave_vec' %(theta,wave_vec*100)
-			if np.mod(n,7)==0:
-				p.join()
-				
+			fname=directory+'collimator_%03d_deg_%03dEm3_wave_vec' %(theta,np.round(wave_vec*100))
+			if not os.path.isfile(fname+'.npz'): 
+				p = multiprocessing.Process(target=ds.run_Dirac, args=(wave_vec,theta*np.pi/180.0,fname))
+				jobs.append(p)
+				p.start()
+				n+=1
+				print 'collimator_%03d_deg_%03dEm3_wave_vec' %(theta,wave_vec*100)
+				if np.mod(n,7)==0:
+					p.join()
+					
 if __name__ == '__main__':
 	main()
